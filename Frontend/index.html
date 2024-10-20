@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Chat Application</title>
+</head>
+
+<body>
+
+    <div id="appendmessage"></div>
+
+    <div class="message-container">
+        <input type="text" id="message" placeholder="Your message">
+        <button id="send"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <script>
+        const socket = io("ws://127.0.0.1:3030");
+
+        const sendBtn = document.getElementById('send');
+        const messageInput = document.getElementById('message');
+        const allMessages = document.getElementById('appendmessage');
+
+        socket.on('message', (message) => {
+            console.log("Message from server:", message);
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message-bubble");
+
+            // Add the user icon and message text
+            messageDiv.innerHTML = `<i class="fa fa-user"></i><span>${message}</span>`;
+            allMessages.appendChild(messageDiv);
+        });
+
+        sendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const message = messageInput.value;
+            if (message.trim() !== "") {
+                console.log("Message sent:", message);
+                socket.emit('user-message', message);
+
+                // Display the user's own message with an icon
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message-bubble");
+
+                // Add the user icon and message text
+                // messageDiv.innerHTML = `<i class="fa fa-user"></i><span>You: ${message}</span>`;
+                allMessages.appendChild(messageDiv);
+
+                messageInput.value = ''; // Clear the input field after sending
+                allMessages.scrollTop = allMessages.scrollHeight; // Scroll to the latest message
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log("Backend and frontend connected");
+        });
+    </script>
+
+</body>
+
+</html>
