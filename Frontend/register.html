@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Media Query for smaller screens */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+
+    <!-- Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const registerForm = document.getElementById('registerForm');
+
+            registerForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const confirmpassword = document.getElementById('confirmpassword').value;
+
+                // Basic validation to check if password and confirm password match
+                if (password === confirmpassword) {
+                    try {
+                        const response = await axios.post('http://127.0.0.1:3030/auth/register', {
+                            username,
+                            password,
+                            confirmpassword
+                        });
+                        console.log('Registration successful:', response.data);
+                        localStorage.setItem('username',response.data.result.username)
+
+                        // Redirect to profilepic.html after successful registration
+                        window.location.href = 'profilepic.html';
+                    } catch (error) {
+                        console.error('Error registering user:', error);
+                        // alert('Error during registration. Please try again.');
+                    }
+                } else {
+                    alert('Passwords do not match. Please try again.');
+                }
+            });
+        });
+    </script>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <input type="password" id="confirmpassword" placeholder="Confirm Password" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+</body>
+
+</html>

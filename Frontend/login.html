@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Media Query for smaller screens */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                font-size: 14px;
+            }
+
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Login</h2>
+        <form id="loginForm" action="/login" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+                <div id="usernameError" class="error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <div id="passwordError" class="error"></div>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        localStorage.removeItem('username');  // Clear any previously stored username
+    
+        const form = document.getElementById('loginForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+    
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();  // Prevent default form submission
+    
+            let valid = true;
+    
+            // Reset error messages
+            document.getElementById('usernameError').innerText = '';
+            document.getElementById('passwordError').innerText = '';
+    
+            // Username validation
+            if (username.value.trim() === '') {
+                document.getElementById('usernameError').innerText = 'Username is required.';
+                valid = false;
+            }
+    
+            // Password validation
+            if (password.value.trim() === '') {
+                document.getElementById('passwordError').innerText = 'Password is required.';
+                valid = false;
+            }
+    
+            if (!valid) {
+                return;  // Stop execution if validation fails
+            }
+    
+            try {
+                // Submit the form data to the backend via Axios
+                const response = await axios.post('http://localhost:3030/auth/login', {
+                    username: username.value,
+                    password: password.value
+                });
+    
+                console.log('Response:', response);
+    
+              
+                    // Save the username to localStorage
+                    localStorage.setItem('username', response.data.result.username);
+                    localStorage.setItem('act', response.data.result.accessToken);
+                    localStorage.setItem('rct', response.data.result.refreshToken);
+    
+                    // Redirect to the next page (e.g., index.html)
+                    window.location.href = 'index.html';
+             
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('An error occurred. Please try again later.');
+            }
+        });
+    </script>
+    
+
+</body>
+
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Profile Picture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ccc;
+        }
+
+        .profile-pic-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            color: white;
+        }
+
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+
+        .username-box {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* Media Query for smaller screens */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            button {
+                font-size: 14px;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Choose Your Profile Picture</h2>
+
+        <!-- Username Display -->
+        <div id="usernameDisplay" class="username-box">Loading username...</div>
+
+        <!-- Profile Picture Preview -->
+        <div class="profile-pic-container">
+            <div id="preview-placeholder" class="profile-pic-placeholder">?</div>
+            <img id="preview" src="#" alt="Profile Picture" class="profile-pic" style="display:none;">
+        </div>
+
+        <!-- File Input -->
+        <input type="file" id="fileInput" accept="image/*" required>
+
+        <!-- Submit Button -->
+        <button type="button" id="submitBtn">Submit</button>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const previewPlaceholder = document.getElementById('preview-placeholder');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+
+        // Retrieve the username from localStorage
+        const username = localStorage.getItem('username');
+
+        // Display the username on the page
+        if (username) {
+            usernameDisplay.innerText = `Username: ${username}`;
+        } else {
+            usernameDisplay.innerText = 'Username not found.';
+        }
+
+        // Event listener to show the preview of the selected image
+        fileInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    previewPlaceholder.style.display = 'none';
+                }
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Event listener for Submit Button
+        document.getElementById('submitBtn').addEventListener('click', async function (event) {
+            event.preventDefault()
+            const file = fileInput.files[0];
+
+            if (file && file.size < 50000000) {  // Check file size limit (50MB)
+                // Prepare the FormData to send to the server
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('username', username);
+                console.log("formData",formData)
+
+                try {
+                    // Send POST request to the backend with Axios
+                    const response = await axios.post('http://localhost:3030/auth/profilepic', formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                    console.log("response",response.data)
+                    alert('Profile picture uploaded successfully!');
+                   
+                    window.location.href = 'login.html';  // Redirect to login page after upload
+                } catch (error) {
+                    alert('Error uploading the profile picture. Please try again.');
+                    console.error(error);
+                }
+            } else {
+                alert('Please select a profile picture that is less than 50MB before submitting.');
+            }
+        });
+    </script>
+
+</body>
+
+</html>

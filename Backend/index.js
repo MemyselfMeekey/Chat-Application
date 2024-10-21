@@ -7,7 +7,8 @@ import { dirname } from "path"
 import { fileURLToPath } from 'url';
 import "./db.config.js"
 import {Server} from "socket.io"
-import "./socket.io.connection.js"
+// import "./socket.io.connection.js"
+import cors from "cors"
 
 const app = express()
 const httpServer = http.createServer(app)
@@ -23,7 +24,7 @@ const __dirname = dirname(__filename); // Use dirname to get the directory name
 const upload=multer({dest:'uploads/'})
 
 app.use(express.static(path.join(__dirname,"../frontend")))//messages comes from frontend servre
-
+app.use(cors())
 app.get('/',(req,res,next)=>{
     res.sendFile(path.join(__dirname,"../../frontend/index.html")) //path to frontend folder
 })

@@ -20,7 +20,8 @@ class AuthController{
             // return await savedUser.save()
             res.json({
                 result:{
-                    username:updatedRegister.username
+                    username:updatedRegister.username,
+                    userId:updatedRegister.id
                 },
                 message:"User registered successfulyy",
                 meta:null
@@ -30,51 +31,55 @@ class AuthController{
             console.log("Error",err)
         }
     }
-    profilepic=async(req,res,next)=>{
-        try{
-            const userId=req.params.id
-            const payload=req.file.path
-            const user=await CasUsers.findByIdAndUpdate(userId,{
-                image:payload
-            },{new:true})
-            
-            if(!user){
+     profilepic = async (req, res, next) => {
+        console.log('Uploaded file:', req.file); // Check if this logs the file info
+    
+        try {
+            const username = req.body.username;
+            const payload = req.file.path;
+    
+            if (!req.file) {
                 return res.status(400).json({
-                    message:"User not found",
-                    meta:null
-                })
+                    message: "No file uploaded",
+                    meta: null,
+                });
             }
-           
-            const accessToken=jwt.sign({
-                id:userDetail._id,
-            },process.env.JWT_SECRET,{
-                expiresIn:"4h"
-            })
-
-            res.json({
-                result:payload.fieldname,
-                message:"Profile pic saved",
-                meta:null
-            })
-        }
-        catch(err){
-            console.log('Error',err)
+    
+            const user = await CasUsers.findOneAndUpdate({username:username}, { image: payload }, { new: true });
+    
+            if (!user) {
+                return res.status(404).json({
+                    message: "User not found",
+                    meta: null,
+                });
+            }
+    
+            
+    
+            res.status(200).json({
+                result: payload,
+                message: "Profile pic saved",
+                meta: null,
+            });
+        } catch (err) {
+            console.log('Error', err);
             res.status(500).json({ message: "An error occurred", meta: null });
         }
-    }
+    };
+    
     login=async(req,res,next)=>{
         try{
             const {username,password}=req.body
             const userDetail=await CasUsers.findOne({username:username})
             if(!userDetail){
-                res.status(400).json({
+                return res.status(400).json({
                     result:"",
                     message:"Username not found",
                     meta:null
                 })
             }
             if(!bcrypt.compareSync(password,userDetail.password)){
-                res.status(400).json({
+               return res.status(404).json({
                     result:"",
                     message:"Password doesn't match",
                     meta:null
@@ -98,7 +103,7 @@ class AuthController{
                 refreshToken:refreshToken
             })
 
-            res.status(200).json({
+           return res.json({
                 result:{
                     username:userDetail.username,
                     accessToken:accessToken,
@@ -121,6 +126,7 @@ class AuthController{
                 result:{
                     _id:loggedinUser._id,
                     username:loggedinUser.username,
+                    profilePicUrl:loggedinUser.image
                 },
                 message:"Your profile",
                 meta:null

@@ -18,47 +18,92 @@
         <button id="send"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
     </div>
 
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+        integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+        crossorigin="anonymous"></script>
     <script>
+        // Get values from localStorage
+        const accessToken = localStorage.getItem('act');
+        const username = localStorage.getItem('username');
+        let profilePicUrl = ''; // Placeholder for profile picture URL
+
+        // Check if the accessToken is present and valid
+        if (!accessToken || accessToken === '') {
+            // If no token is present, redirect to the login page
+            window.location.href = 'login.html';
+        }
+
         const socket = io("ws://127.0.0.1:3030");
 
         const sendBtn = document.getElementById('send');
         const messageInput = document.getElementById('message');
         const allMessages = document.getElementById('appendmessage');
 
-        socket.on('message', (message) => {
-            console.log("Message from server:", message);
+        // Fetch the user's profile info from the backend
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch('http://localhost:3030/auth/getUser', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}` // Send the accessToken in the request header
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data)
+                    profilePicUrl = '../backend/' + data.result.profilePicUrl; // Use a default image if not provided
+                    console.log('Profile picture URL:', profilePicUrl);
+                } else {
+                    console.error('Failed to fetch profile data. Please log in again.');
+                    window.location.href = 'login.html'; // Redirect if the token is invalid or expired
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                window.location.href = 'login.html'; // Redirect in case of an error
+            }
+        }
+
+        // Load the user's profile picture
+        fetchUserProfile();
+
+        // Listen for messages from the server
+        // Listen for messages from the server
+        socket.on('message', (data) => {
+            console.log("Message from server:", data);
             const messageDiv = document.createElement("div");
             messageDiv.classList.add("message-bubble");
 
-            // Add the user icon and message text
-            messageDiv.innerHTML = `<i class="fa fa-user"></i><span>${message}</span>`;
+            // Use the sender's profile picture and username
+            messageDiv.innerHTML = `<img src="${data.sender.profilePicUrl}" class="profile-pic" alt="Profile Image"><span>${data.sender.username}: ${data.message}</span>`;
             allMessages.appendChild(messageDiv);
         });
 
+
+        // Send a message when the user clicks the send button
         sendBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const message = messageInput.value;
-            if (message.trim() !== "") {
-                console.log("Message sent:", message);
-                socket.emit('user-message', message);
-
-                // Display the user's own message with an icon
-                const messageDiv = document.createElement("div");
-                messageDiv.classList.add("message-bubble");
-
-                // Add the user icon and message text
-                // messageDiv.innerHTML = `<i class="fa fa-user"></i><span>You: ${message}</span>`;
-                allMessages.appendChild(messageDiv);
-
-                messageInput.value = ''; // Clear the input field after sending
-                allMessages.scrollTop = allMessages.scrollHeight; // Scroll to the latest message
+    e.preventDefault();
+    const message = messageInput.value;
+    if (message.trim() !== "") {
+        console.log("Message sent:", message);
+        socket.emit('user-message', {
+            message: message,
+            sender: {
+                username: username,
+                profilePicUrl: profilePicUrl
             }
         });
 
-        socket.on('connect', () => {
-            console.log("Backend and frontend connected");
-        });
+        // Display the user's own message
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message-bubble");
+        allMessages.appendChild(messageDiv);
+
+        messageInput.value = ''; // Clear the input field after sending
+        allMessages.scrollTop = allMessages.scrollHeight; // Scroll to the latest message
+    }
+});
+
     </script>
 
 </body>

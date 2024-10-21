@@ -4,16 +4,17 @@ import multer from "multer"
 import {LoginSchema, RegisterSchema} from "./Auth/auth.validator.js"
 import { validateRequest } from "./middlewares/joi.middlewares.js"
 import { loginCheck } from "./middlewares/loginCheck.middleware.js"
+import  uploader  from "./middlewares/multer.middleware.js"
 
 const router=express.Router()
-const upload=multer({dest:'uploads/'})
 
 
 
-router.post('/register',upload.none(),validateRequest(RegisterSchema),AuthCtrl.register)
-router.post('/profilepic/:id',upload.single('image'),AuthCtrl.profilepic)
-router.post('/login',upload.none(),validateRequest(LoginSchema),AuthCtrl.login)
-router.get('/getUser',loginCheck,AuthCtrl.getUser)
+
+router.post('/register',uploader.none(),validateRequest(RegisterSchema),AuthCtrl.register)
+router.post('/profilepic',uploader.single('image'),AuthCtrl.profilepic)
+router.post('/login',uploader.none(),validateRequest(LoginSchema),AuthCtrl.login)
+router.get('/getUser',uploader.none(),loginCheck,AuthCtrl.getUser)
 
 router.use((req,res,next)=>{
     res.status(404).json({
